@@ -258,7 +258,7 @@ void TrajectoryManager<_N>::UpdateTrajectoryProperty() {
   trajectory_->UpdateActiveTime(cor_max_time_);
   trajectory_->SetForcedFixedTime(cor_min_time_ - 0.1);
 
-  TrajectoryViewer::PublishSplineTrajectory<4>(
+  TrajectoryViewer::PublishSplineTrajectory<_N>(
       trajectory_, trajectory_->minTime(), cor_max_time_, 0.02);
 
   cache_imu_bias_.push_back(
@@ -334,8 +334,8 @@ void TrajectoryManager<_N>::IntegrateIMUMeasurement(double scan_time_min,
 
   ceres::Solver::Summary summary = estimator->Solve(50, false);
 
-  //  TrajectoryViewer::PublishIMUData<4>(trajectory_, imu_data_);
-  TrajectoryViewer::PublishSplineTrajectory<4>(
+  //  TrajectoryViewer::PublishIMUData<_N>(trajectory_, imu_data_);
+  TrajectoryViewer::PublishSplineTrajectory<_N>(
       trajectory_, trajectory_->minTime(), scan_time_max, 0.02);
 }
 
@@ -383,7 +383,7 @@ void TrajectoryManager<_N>::OptimiseLoopClosure(
 
   ceres::Solver::Summary summary = estimator->Solve(100, true);
 
-  TrajectoryViewer::PublishSplineTrajectory<4>(
+  TrajectoryViewer::PublishSplineTrajectory<_N>(
       trajectory_, trajectory_->minTime(), trajectory_->maxTime(), 0.02);
 }
 

@@ -332,7 +332,7 @@ bool LidarOdometry<_N>::UpdateOdometry() {
 
   ScanMatch();
 
-  TrajectoryViewer::PublishDenseCloud<4>(trajectory_, feature_map_ds_,
+  TrajectoryViewer::PublishDenseCloud<_N>(trajectory_, feature_map_ds_,
                                          feature_cur_ds_);
 
   UpdateKeyFrames();

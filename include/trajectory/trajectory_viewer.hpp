@@ -141,9 +141,9 @@ class TrajectoryViewer {
       const Eigen::aligned_vector<IMUData> &imu_data,
       const std::vector<std::pair<double, IMUBias>> &imu_bias,
       std::string cache_path = " ") {
-    //    if (publisher::pub_imu_raw_array_.getNumSubscribers() == 0 &&
-    //        publisher::pub_imu_est_array_.getNumSubscribers() == 0)
-    //      return;
+    if (publisher::pub_imu_raw_array_.getNumSubscribers() == 0 &&
+        publisher::pub_imu_est_array_.getNumSubscribers() == 0)
+        return;
 
     clins::imu_array imu_array_raw;
     clins::imu_array imu_array_est;
@@ -299,6 +299,9 @@ class TrajectoryViewer {
   static void PublishIMUOrientationData(
       std::shared_ptr<Trajectory<_N>> trajectory,
       const Eigen::aligned_vector<PoseData> &orientation_data) {
+    if (publisher::pub_trajectory_raw_.getNumSubscribers() == 0 &&
+        publisher::pub_trajectory_est_.getNumSubscribers() == 0)
+      return;
     clins::pose_array imu_ori_path_raw;
     clins::pose_array imu_ori_path_est;
 
@@ -336,6 +339,8 @@ class TrajectoryViewer {
       ros::Publisher &pub_trajectory,
       std::shared_ptr<Trajectory<_N>> trajectory, double min_time,
       double max_time, double dt) {
+    if (pub_trajectory.getNumSubscribers() == 0)
+      return;
     if (min_time < trajectory->minTime()) min_time = trajectory->minTime();
     if (max_time > trajectory->maxTime()) max_time = trajectory->maxTime();
 
@@ -444,6 +449,10 @@ class TrajectoryViewer {
   static void PublishICPCloud(GPointCloud::Ptr target_cloud,
                               GPointCloud::Ptr source_cloud,
                               Eigen::Matrix4f transform_matrix) {
+    if (publisher::pub_icp_target_cloud_.getNumSubscribers() == 0 &&
+        publisher::pub_icp_source_cloud_.getNumSubscribers() == 0 &&
+        publisher::pub_icp_raw_source_cloud_.getNumSubscribers() == 0)
+      return;
     sensor_msgs::PointCloud2 target_msg;
     sensor_msgs::PointCloud2 source_msg;
     sensor_msgs::PointCloud2 raw_source_msg;
@@ -467,6 +476,9 @@ class TrajectoryViewer {
                               GPointCloud::Ptr source_cloud,
                               Eigen::Matrix4f target_pose,
                               Eigen::Matrix4f transform_matrix) {
+    if (publisher::pub_icp_target_cloud_.getNumSubscribers() == 0 &&
+        publisher::pub_icp_source_cloud_.getNumSubscribers() == 0)
+      return;
     sensor_msgs::PointCloud2 target_msg;
     sensor_msgs::PointCloud2 source_msg;
 
@@ -488,6 +500,9 @@ class TrajectoryViewer {
   // 离散pose graph的显示
   static void PublishDiscretedPoseGraphMarker(std::vector<SE3d> pose_before,
                                               std::vector<SE3d> pose_after) {
+    if (publisher::pub_pose_graph_marker_.getNumSubscribers() == 0 )
+      return;
+
     assert(pose_before.size() == pose_after.size() &&
            "[PublishDiscretedPoseGraphMarker] pose size error ");
     visualization_msgs::MarkerArray marker_array;

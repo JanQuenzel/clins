@@ -37,6 +37,7 @@ class CloudPublisher {
   }
 
   void Publish(VPointCloud::Ptr cloud_ptr_input) {
+    if ( publisher_.getNumSubscribers() == 0 ) return;
     sensor_msgs::PointCloud2Ptr cloud_ptr_output(
         new sensor_msgs::PointCloud2());
     pcl::toROSMsg(*cloud_ptr_input, *cloud_ptr_output);

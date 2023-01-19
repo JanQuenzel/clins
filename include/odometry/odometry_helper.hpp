@@ -42,6 +42,7 @@
 #include <odometry/lidar_odometry.hpp>
 #include <odometry/odom_visualizer.hpp>
 #include <feature/feature_extraction.h>
+#include <fstream>
 
 namespace clins {
 
@@ -55,6 +56,10 @@ class OdometryHelper {
   typedef std::shared_ptr<OdometryHelper<_N>> Ptr;
 
   OdometryHelper(const YAML::Node& node);
+  ~OdometryHelper(){
+    if ( posesFile_ )
+      posesFile_->close();
+  }
 
   void LidarSpinOffline();
 
@@ -133,6 +138,8 @@ class OdometryHelper {
   bool use_imu_orientation_;
 
   std::vector<double> lidar_timestamps_;
+
+  std::shared_ptr<std::ofstream> posesFile_ = nullptr;
 };
 
 template <int _N>
@@ -453,6 +460,19 @@ void OdometryHelper<_N>::LidarSpinOffline() {
         PublishKeyPoses();
         auto pose = trajectory_->GetLidarPose(lidar_timestamps_.back());
         PublishTF(pose.unit_quaternion(), pose.translation(), "lidar", "map");
+
+        {
+          // write to file:
+          if ( ! posesFile_ )
+            posesFile_ = std::make_shared<std::ofstream>("./clins_after_map_poses.txt");
+          if( posesFile_ && posesFile_->is_open() )
+          {
+            const Eigen::Quaterniond q = pose.unit_quaternion();
+            const Eigen::Vector3d t = pose.translation();
+            (*posesFile_) << (lidar_ts_ns) << " " << t.x() << " " << t.y() << " " << t.z()
+                          << " " << q.x() << " " << q.y() << " " << q.z() << " " << q.w() << std::endl;
+          }
+        }
       }
     }
 
@@ -508,6 +528,7 @@ bool OdometryHelper<_N>::TryToInitialize(double feature_time) {
 
 template <int _N>
 void OdometryHelper<_N>::PublishKeyPoses() {
+  if ( pub_key_pose_.getNumSubscribers() == 0 ) return;
   PosCloud::Ptr key_poses = lidar_odom_->GetCloudKeyPose();
   sensor_msgs::PointCloud2 cloud_msg;
   pcl::toROSMsg(*key_poses, cloud_msg);
@@ -530,6 +551,7 @@ void OdometryHelper<_N>::PublishTF(Eigen::Quaterniond quat, Eigen::Vector3d pos,
 
 template <int _N>
 void OdometryHelper<_N>::PublishLoopClosureMarkers() {
+  if ( pub_loop_closure_marker_.getNumSubscribers() == 0 ) return;
   std::map<int, int> loop_closure_info =
       lidar_odom_->GetHistoryLoopClosureInfo();
 
