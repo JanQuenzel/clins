@@ -5,8 +5,11 @@ project(clins)
 #set(CMAKE_CXX_FLAGS "-ftemplate-backtrace-limit=0  -march=${CXX_MARCH} -O3 -DBASALT_USE_CHOLMOD -DBASALT_DISABLE_ASSERTS -DNDEBUG")
 #set(CMAKE_CXX_FLAGS " -march=${CXX_MARCH} -O3")
 set(CMAKE_CXX_STANDARD 17)
+#set(CMAKE_BUILD_TYPE "RelWithDebInfo")
+#set(CMAKE_BUILD_TYPE "Debug")
 set(CMAKE_BUILD_TYPE "RELEASE")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -msse4.2")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O1 -g -DNDEBUG ")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -msse4.2 -g")
 #add_definitions(-O3 -msse -msse2 -msse3 -msse4 -msse4.1 -msse4.2)
 
 find_package(OpenMP)
@@ -14,6 +17,16 @@ if (OPENMP_FOUND)
     set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
+
+set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
+set ( BUILD_SHARED_LIBS_TMP ${BUILD_SHARED_LIBS} )
+set ( BUILD_SHARED_LIBS OFF )
+set(SOPHUS_USE_BASIC_LOGGING ON CACHE BOOL "Sophus dont use fmt")
+set(BUILD_SOPHUS_TESTS OFF CACHE BOOL "Build sophus tests")
+set(BUILD_SOPHUS_EXAMPLES OFF CACHE BOOL "Build sophus examples")
+add_subdirectory(${PROJECT_SOURCE_DIR}/deps/Sophus)
+set(BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS_TMP})
+
 
 
 find_package(catkin REQUIRED COMPONENTS
@@ -35,7 +48,7 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(Eigen3)
 find_package(OpenCV REQUIRED)
 find_package(Ceres REQUIRED)
-find_package(Sophus REQUIRED )
+#find_package(Sophus REQUIRED )
 
 find_package(yaml-cpp REQUIRED)
 # find_package(PkgConfig REQUIRED)
@@ -76,6 +89,7 @@ include_directories(
   ${EIGEN3_INCLUDE_DIR}
   ${OpenCV_INCLUDE_DIRS}
   ${CERES_INCLUDE_DIRS}
+  ${PROJECT_SOURCE_DIR}/deps/Sophus
 )
 
 # Set link libraries used by all binaries
@@ -85,6 +99,7 @@ list(APPEND thirdparty_libraries
         ${PCL_LIBRARIES}
         ${OpenCV_LIBS}
         ${YAML_CPP_LIBRARIES}
+        sophus
         ceres
 )
 

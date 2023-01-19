@@ -34,7 +34,6 @@
 #include <yaml-cpp/yaml.h>
 
 #include <clins/feature_cloud.h>
-#include <feature/feature_extraction.h>
 #include <odometry/imu_state_estimator.h>
 #include <odometry/inertial_initializer.h>
 #include <utils/gps_convert_utils.h>
@@ -42,8 +41,11 @@
 #include <visualization_msgs/MarkerArray.h>
 #include <odometry/lidar_odometry.hpp>
 #include <odometry/odom_visualizer.hpp>
+#include <feature/feature_extraction.h>
 
 namespace clins {
+
+constexpr bool print_info = false;
 
 template <int _N>
 class OdometryHelper {
@@ -150,16 +152,14 @@ OdometryHelper<_N>::OdometryHelper(const YAML::Node& node)
   save_map_ = node["save_map"].as<bool>();
 
   bool use_corner_feature = node["use_corner_feature"].as<bool>();
-  bool use_imu_orientation_ = node["use_imu_orientation"].as<bool>();
+  use_imu_orientation_ = node["use_imu_orientation"].as<bool>();
 
   calib_param_ = std::make_shared<CalibParamManager>(node);
   trajectory_ = std::make_shared<Trajectory<_N>>(knot_distance_);
   trajectory_->SetCalibParam(calib_param_);
 
   imu_state_estimator_ = std::make_shared<ImuStateEstimator>(node);
-  trajectory_manager_ = std::make_shared<TrajectoryManager<_N>>(
-      trajectory_, calib_param_, imu_state_estimator_);
-
+  trajectory_manager_ = std::make_shared<TrajectoryManager<_N>>( trajectory_, calib_param_, imu_state_estimator_);
   trajectory_manager_->SetUseCornerFeature(use_corner_feature);
   trajectory_manager_->SetUseIMUOrientation(use_imu_orientation_);
 
@@ -215,7 +215,7 @@ void OdometryHelper<_N>::LiDARHandler(
 
   // step1: Check msg
   double scan_max_time = 0;
-  if (!ParsePointCloud(lidar_msg, scan_max_time)) return;
+  if (!ParsePointCloud(lidar_msg, scan_max_time)){ ROS_ERROR_STREAM("Could not parse...?"); return; }
   scan_time -= trajectory_->GetDataStartTime();
   scan_max_time -= trajectory_->GetDataStartTime();
   lidar_timestamps_.push_back(scan_time);
@@ -225,8 +225,7 @@ void OdometryHelper<_N>::LiDARHandler(
 
   // step3: Undistort Scan
   undistort_cloud_->clear();
-  trajectory_->UndistortScan(scan_time, *raw_cloud_, scan_time,
-                             *undistort_cloud_);
+  trajectory_->UndistortScan(scan_time, *raw_cloud_, scan_time, *undistort_cloud_);
 
   // step4: Extract lidar feature
   feature_extraction_->LidarHandler(raw_cloud_, undistort_cloud_);
@@ -252,8 +251,7 @@ void OdometryHelper<_N>::LiDARHandler(
       return;
   }
 
-  if (scan_time < trajectory_->GetDataStartTime() ||
-      trajectory_->GetDataStartTime() == 0) {
+  if (scan_time < trajectory_->GetDataStartTime() || trajectory_->GetDataStartTime() == 0) {
     std::cout << YELLOW << "skip scan : " << scan_time << RESET << std::endl;
     return;
   }
@@ -287,14 +285,18 @@ void OdometryHelper<_N>::LiDARHandler(
 template <int _N>
 bool OdometryHelper<_N>::ParsePointCloud(
     const sensor_msgs::PointCloud2::ConstPtr& lidar_msg, double& max_time) {
+  bool hasTime = true;
   bool hasTimeField = false;
+  bool hasTField = false;
   bool check_field = true;
   if (check_field) {
-    bool ret = CheckMsgFields(*lidar_msg, "ring");
-    ret = ret && CheckMsgFields(*lidar_msg, "time");
+    const bool hasRingField = CheckMsgFields(*lidar_msg, "ring");
+    hasTimeField = CheckMsgFields(*lidar_msg, "time");
+    hasTField = CheckMsgFields(*lidar_msg, "t");
+    bool ret = hasRingField && (hasTimeField || hasTField);
     check_field = false;
+    if (!ret) hasTime = false;
 
-    if (ret) hasTimeField = true;
   }
 
   double scan_time =
@@ -302,17 +304,38 @@ bool OdometryHelper<_N>::ParsePointCloud(
 
   max_time = 0;
   /// convert cloud
-  if (hasTimeField) {
-    RTPointCloud::Ptr cur_cloud(new RTPointCloud());
-    pcl::fromROSMsg(*lidar_msg, *cur_cloud);
+  if (hasTime) {
     raw_cloud_->clear();
-    for (size_t i = 0; i < cur_cloud->size(); i++) {
-      double point_timestamp = scan_time + cur_cloud->points[i].time;
-      raw_cloud_->push_back(cur_cloud->points[i]);
-      if (max_time < point_timestamp) max_time = point_timestamp;
+    if ( hasTimeField )
+    {
+        RTPointCloud::Ptr cur_cloud(new RTPointCloud());
+        pcl::fromROSMsg(*lidar_msg, *cur_cloud);
+        for (size_t i = 0; i < cur_cloud->size(); i++) {
+          double point_timestamp = scan_time + cur_cloud->points[i].time;
+          raw_cloud_->push_back(cur_cloud->points[i]);
+          if (max_time < point_timestamp) max_time = point_timestamp;
+        }
+    }
+    if ( hasTField )
+    {
+        RTPoint pt;
+        OSPointCloud::Ptr cur_cloud2(new OSPointCloud());
+        pcl::fromROSMsg(*lidar_msg, *cur_cloud2);
+        for (size_t i = 0; i < cur_cloud2->size(); i++) {
+
+          const OSPoint & pt2 = cur_cloud2->points[i];
+          pt.getVector3fMap() = pt2.getVector3fMap();
+          pt.intensity = pt2.intensity;
+          pt.ring = pt2.ring;
+          pt.time = pt2.t * 1e-9;
+          raw_cloud_->push_back(pt);
+          double point_timestamp = scan_time + pt.time;
+          if (max_time < point_timestamp) max_time = point_timestamp;
+        }
     }
     return true;
   } else {
+    ROS_ERROR_STREAM_THROTTLE(1.0, "could not parse cloud!");
     return false;
   }
 }
@@ -366,9 +389,12 @@ void OdometryHelper<_N>::LoopClosure() {
 
 template <int _N>
 void OdometryHelper<_N>::LidarSpinOffline() {
+  if constexpr ( print_info ) ROS_INFO("opening bag...");
   rosbag::Bag bag;
   bag.open(bag_path_, rosbag::bagmode::Read);
+  if ( !bag.isOpen() ) {ROS_ERROR("ups...");}
 
+  if constexpr ( print_info ) ROS_INFO("bag open.");
   std::vector<std::string> topics;
   topics.push_back(lidar_topic_);
   topics.push_back(imu_topic_);
@@ -376,6 +402,7 @@ void OdometryHelper<_N>::LidarSpinOffline() {
   rosbag::View view_;
   rosbag::View view_full;
   view_full.addQuery(bag);
+  if constexpr ( print_info ) ROS_INFO_STREAM("queried " << view_full.getBeginTime().toNSec() << " " << view_full.getEndTime().toNSec());
   ros::Time time_init = view_full.getBeginTime();
   time_init += ros::Duration(bag_start_);
   ros::Time time_finish = (bag_durr_ < 0)
@@ -390,24 +417,32 @@ void OdometryHelper<_N>::LidarSpinOffline() {
   }
 
   ros::Rate rate(5);
+  ROS_INFO_STREAM("now iterate... over. " << view_.size());
+  const double bag_begin_time = view_full.getBeginTime().toSec();
+  double last_bag_time = bag_begin_time;
+  const std::chrono::high_resolution_clock::time_point compute_begin_time = std::chrono::high_resolution_clock::now();
   for (const rosbag::MessageInstance& m : view_) {
-    ros::Time ros_bag_time = m.getTime();
+    const ros::Time ros_bag_time = m.getTime();
+    const double bag_time = ros_bag_time.toSec();
     if (m.getTopic() == imu_topic_) {
       sensor_msgs::Imu::ConstPtr imu_msg = m.instantiate<sensor_msgs::Imu>();
+      if ( imu_msg == nullptr ) continue;
       IMUHandler(imu_msg);
-    } else if (m.getTopic() == lidar_topic_) {
+    }
+    if (m.getTopic() == lidar_topic_) {
       if (m.getDataType() == std::string("sensor_msgs/PointCloud2")) {
-        auto lidar_msg = m.instantiate<sensor_msgs::PointCloud2>();
-        double delta_time =
-            ros_bag_time.toSec() - lidar_msg->header.stamp.toSec();
+        const auto lidar_msg = m.instantiate<sensor_msgs::PointCloud2>();
+        if ( lidar_msg == nullptr ) continue;
+        const double delta_time = bag_time - lidar_msg->header.stamp.toSec();
         if (delta_time < 0.08) {
           std::cout << " Delta Time : " << delta_time << std::endl;
         }
         LiDARHandler(lidar_msg);
-      } else if (m.getDataType() == std::string("velodyne_msgs/VelodyneScan")) {
-        auto lidar_msg = m.instantiate<velodyne_msgs::VelodyneScan>();
-        double delta_time =
-            ros_bag_time.toSec() - lidar_msg->header.stamp.toSec();
+      }
+      if (m.getDataType() == std::string("velodyne_msgs/VelodyneScan")) {
+        const auto lidar_msg = m.instantiate<velodyne_msgs::VelodyneScan>();
+        if ( lidar_msg == nullptr ) continue;
+        const double delta_time = bag_time - lidar_msg->header.stamp.toSec();
         if (delta_time < 0.08) {
           std::cout << " Delta Time : " << delta_time << std::endl;
         }
@@ -416,21 +451,24 @@ void OdometryHelper<_N>::LidarSpinOffline() {
 
       if (is_initialized_) {
         PublishKeyPoses();
-
         auto pose = trajectory_->GetLidarPose(lidar_timestamps_.back());
         PublishTF(pose.unit_quaternion(), pose.translation(), "lidar", "map");
       }
     }
 
-    double bag_time = m.getTime().toSec();
     if (loop_closure_timestamp_ < 0) {
       loop_closure_timestamp_ = bag_time;
     } else {
-      if (bag_time - loop_closure_timestamp_ >
-          (1.0 / loop_closure_frequency_)) {
+      if ( (bag_time - loop_closure_timestamp_) > (1.0 / loop_closure_frequency_) ) {
         loop_closure_timestamp_ = bag_time;
         LoopClosure();
       }
+    }
+
+    if ( (bag_time - last_bag_time) > 5 )
+    {
+        last_bag_time = bag_time;
+        ROS_INFO_STREAM("time elapsed: bag: " << (bag_time - bag_begin_time) << " wall: " << std::chrono::duration<double>(std::chrono::high_resolution_clock::now() - compute_begin_time).count());
     }
 
     if (!ros::ok()) break;
@@ -500,7 +538,7 @@ void OdometryHelper<_N>::PublishLoopClosureMarkers() {
   if (loop_closure_info.empty()) return;
   visualization_msgs::MarkerArray marker_array;
   visualization_msgs::Marker marker_node;
-  marker_node.header.frame_id = "/map";
+  marker_node.header.frame_id = "map";
   marker_node.header.stamp = ros::Time::now();
   marker_node.action = visualization_msgs::Marker::ADD;
   marker_node.type = visualization_msgs::Marker::SPHERE_LIST;
@@ -517,7 +555,7 @@ void OdometryHelper<_N>::PublishLoopClosureMarkers() {
 
   // loop edges
   visualization_msgs::Marker marker_edge;
-  marker_edge.header.frame_id = "/map";
+  marker_edge.header.frame_id = "map";
   marker_edge.header.stamp = ros::Time::now();
   marker_edge.action = visualization_msgs::Marker::ADD;
   marker_edge.type = visualization_msgs::Marker::LINE_LIST;

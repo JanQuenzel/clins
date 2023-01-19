@@ -49,6 +49,16 @@ typedef pcl::PointCloud<GPoint> GPointCloud;
 
 /// reference
 /// https://github.com/ros-drivers/velodyne/blob/master/velodyne_pcl/include/velodyne_pcl/point_types.h
+namespace ouster_pcl {
+struct PointXYZIRT {
+  PCL_ADD_POINT4D;                 // quad-word XYZ
+  float intensity;                 ///< laser intensity reading
+  uint8_t ring;                    ///< laser ring number
+  uint32_t t;                      ///< laser time reading
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW  // ensure proper alignment
+} EIGEN_ALIGN16;
+}  // namespace ouster_pcl
+
 namespace velodyne_pcl {
 struct PointXYZIRT {
   PCL_ADD_POINT4D;                 // quad-word XYZ
@@ -84,8 +94,19 @@ POINT_CLOUD_REGISTER_POINT_STRUCT(velodyne_pcl::PointXYZIRT, (float, x, x)  //
                                   (float, time, time)                       //
 )
 
+POINT_CLOUD_REGISTER_POINT_STRUCT(ouster_pcl::PointXYZIRT, (float, x, x)    //
+                                  (float, y, y)                             //
+                                  (float, z, z)                             //
+                                  (float, intensity, intensity)             //
+                                  (uint8_t, ring, ring)                     //
+                                  (uint32_t, t, t)                          //
+)
+
+
 typedef velodyne_pcl::PointXYZIRT RTPoint;
 typedef pcl::PointCloud<RTPoint> RTPointCloud;
+typedef ouster_pcl::PointXYZIRT OSPoint;
+typedef pcl::PointCloud<OSPoint> OSPointCloud;
 
 POINT_CLOUD_REGISTER_POINT_STRUCT(velodyne_pcl::PointXYZT, (float, x, x)  //
                                   (float, y, y)                           //

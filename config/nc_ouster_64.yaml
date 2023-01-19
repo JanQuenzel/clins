@@ -1,25 +1,24 @@
 ## Feature Extraction Parameter
-lidar_topic: /velodyne_left_points
-N_SCAN: 16
-Horizon_SCAN: 1800
+lidar_topic: /os1_cloud_node/points
+N_SCAN: 64
+Horizon_SCAN: 1024
 edge_threshold: 1.0
 surf_threshold: 0.1
 odometry_surface_leaf_size: 0.4
 undistort_scan_before_extraction: true
 min_distance: 1.0
-max_distance: 100.0
+max_distance: 150.0
 
 ## Bag Param
-#bag_path: /media/ha/ORICO/clins_dataset/kaist-urban-07.bag
-bag_path: /home/jquenzel/Downloads/kaist-urban-07.bag
-imu_topic: /imu/data
+bag_path: /media/jquenzel/CopterExchange_2/nc/01_short/01_short_l.bag
+imu_topic: /os1_cloud_node/imu
 gps_topic: /gps/fix
 bag_start: 0
 bag_durr: -1
 
 ## Methods of data fusion
 use_corner_feature: true
-use_imu_orientation: true
+use_imu_orientation: false
 
 ## Spline Param
 knot_distance: 0.1
@@ -33,7 +32,7 @@ keyframe_adding_angle_threshold: 30
 keyframe_adding_dist_meter: 0.5
 edge_min_valid_num: 10
 surf_min_valid_num: 100
-downsample_num: 1 # lidar Correspondence
+downsample_num: 4 # lidar Correspondence
 
 ## ImuStateEstimator
 accel_excite_threshold: 0.5
@@ -51,10 +50,10 @@ lidar_weight: 20.0
 
 time_offset: 0
 extrinsic:
- Trans: [-0.368343, 0.395882, 0.24095]
- Rot: [-0.515105, -0.702383, -0.491249,
-       0.487008, -0.711468, 0.506593,
-       -0.70533, 0.0217062, 0.708547]
+ Trans: [-0.006253, 0.011775, 0.028535]
+ Rot: [-1.0, 0.0, 0.0,
+       0.0,-1.0, 0.0,
+       0.0, 0.0, 1.0]
 
 
 

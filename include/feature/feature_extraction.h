@@ -20,6 +20,7 @@
 #ifndef FEATURE_EXTRATION_H
 #define FEATURE_EXTRATION_H
 
+//#include <pcl/kdtree/kdtree_flann.h>
 #include <clins/feature_cloud.h>
 #include <feature/voxel_filter.h>
 #include <ros/ros.h>
@@ -27,9 +28,9 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <utils/tic_toc.h>
 #include <yaml-cpp/yaml.h>
+#include <sensor_data/calibration.hpp>
 #include <opencv2/core/eigen.hpp>
 #include <opencv2/opencv.hpp>
-#include <sensor_data/calibration.hpp>
 
 namespace clins {
 

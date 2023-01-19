@@ -20,6 +20,7 @@
 #ifndef TRAJECTORY_MANAGER_HPP
 #define TRAJECTORY_MANAGER_HPP
 
+#include <pcl/kdtree/kdtree_flann.h>
 #include <odometry/imu_state_estimator.h>
 #include <sensor_data/imu_data.h>
 #include <sensor_data/loop_closure_data.h>
@@ -29,7 +30,6 @@
 #include <trajectory/se3_trajectory.hpp>
 #include <trajectory/trajectory_estimator.hpp>
 #include <trajectory/trajectory_viewer.hpp>
-
 #include <pcl/kdtree/impl/kdtree_flann.hpp>
 
 namespace clins {
