@@ -178,7 +178,7 @@ class Se3Spline {
   /// @param[in] initial_so3 initial knot of so3_spline
   /// @param[in] initial_pos initial knot of pos_spline
   void extendKnotsTo(double t, const SO3 initial_so3, const Vec3 initial_pos) {
-    while ((numKnots() < N) || (maxTime() < t)) {
+    while ((numKnots() < N) || (maxTime() < (t+1e-9))) {
       so3_spline.knots_push_back(initial_so3);
       pos_spline.knots_push_back(initial_pos);
     }
@@ -189,7 +189,7 @@ class Se3Spline {
   /// @param[in] t timestamp
   /// @param[in] initial_knot initial knot
   void extendKnotsTo(double timestamp, const SE3 &initial_knot) {
-    while ((numKnots() < N) || (maxTime() < timestamp)) {
+    while ((numKnots() < N) || (maxTime() < (timestamp+1e-9))) {
       knots_push_back(initial_knot);
     }
   }

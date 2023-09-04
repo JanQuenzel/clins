@@ -66,9 +66,11 @@ class RelativeTrajectoryPoseFactor : public CeresSplineHelper<_N> {
     P_offset[1] = R_offset[1] + spline_meta_.NumParameters();
 
     SO3T target_R_ItoG, source_R_ItoG;
-    CeresSplineHelperJet<T, _N>::template evaluate_lie<Sophus::SO3>(
+    //CeresSplineHelperJet<T, _N>::template evaluate_lie<Sophus::SO3>(
+    CeresSplineHelperJet<T, _N>::evaluate_lie (
         sKnots + R_offset[0], u[0], inv_dt_, &target_R_ItoG);
-    CeresSplineHelperJet<T, _N>::template evaluate_lie<Sophus::SO3>(
+    //CeresSplineHelperJet<T, _N>::template evaluate_lie<Sophus::SO3>(
+    CeresSplineHelperJet<T, _N>::evaluate_lie (
         sKnots + R_offset[1], u[1], inv_dt_, &source_R_ItoG);
 
     Vec3T target_p_IinG, source_p_IinG;
@@ -133,9 +135,11 @@ class LoopClosureEdgesFactor : public CeresSplineHelper<_N> {
     P_offset[1] = R_offset[1] + spline_meta_.NumParameters();
 
     SO3T target_R_ItoG, source_R_ItoG;
-    CeresSplineHelperJet<T, _N>::template evaluate_lie<Sophus::SO3>(
+    //CeresSplineHelperJet<T, _N>::template evaluate_lie<Sophus::SO3>(
+    CeresSplineHelperJet<T, _N>::evaluate_lie (
         sKnots + R_offset[0], u[0], inv_dt_, &target_R_ItoG);
-    CeresSplineHelperJet<T, _N>::template evaluate_lie<Sophus::SO3>(
+    //CeresSplineHelperJet<T, _N>::template evaluate_lie<Sophus::SO3>(
+    CeresSplineHelperJet<T, _N>::evaluate_lie (
         sKnots + R_offset[1], u[1], inv_dt_, &source_R_ItoG);
 
     Vec3T target_p_IinG, source_p_IinG;
@@ -208,7 +212,8 @@ class VelocityConstraintFactor : public CeresSplineHelper<_N> {
 
     SO3T R_w_i;
     Tangent rot_vel;
-    CeresSplineHelper<_N>::template evaluate_lie<T, Sophus::SO3>(
+    //CeresSplineHelper<_N>::template evaluate_lie<T, Sophus::SO3>(
+    CeresSplineHelper<_N>::template evaluate_lie<T>(
         sKnots + R_offset, u, inv_dt_, &R_w_i, &rot_vel);
 
     Vec3T vel_w;

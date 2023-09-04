@@ -2,7 +2,7 @@
 <launch>
 
    <arg name="rviz" default="true" />
-   <arg name="config_name"    default="/config/nc_ouster_64.yaml" />
+   <arg name="config_name"    default="/config/nce_ouster_128.yaml" />
 
   <!-- <node pkg="clins" type="clins_offline_node" name="clins_offline_node"
          output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
@@ -16,3 +16,4 @@
    </group>
 
 </launch>
+

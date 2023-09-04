@@ -102,7 +102,8 @@ class GyroscopeWithConstantBiasFactor : public CeresSplineHelper<_N> {
     spline_meta_.ComputeSplineIndex(imu_data_.timestamp, R_offset, u);
 
     Tangent rot_vel;
-    CeresSplineHelper<_N>::template evaluate_lie<T, Sophus::SO3>(
+    //CeresSplineHelper<_N>::template evaluate_lie<T, Sophus::SO3>(
+    CeresSplineHelper<_N>::template evaluate_lie<T>(
         sKnots + R_offset, u, inv_dt_, nullptr, &rot_vel, nullptr);
 
     size_t Kont_offset = spline_meta_.NumParameters();
@@ -154,7 +155,8 @@ class GyroAcceWithConstantBiasFactor : public CeresSplineHelper<_N> {
 
     SO3T R_w_i;
     Tangent rot_vel;
-    CeresSplineHelper<_N>::template evaluate_lie<T, Sophus::SO3>(
+    //CeresSplineHelper<_N>::template evaluate_lie<T, Sophus::SO3>(
+    CeresSplineHelper<_N>::template evaluate_lie<T>(
         sKnots + R_offset, u, inv_dt_, &R_w_i, &rot_vel);
 
     Vec3T accel_w;
@@ -232,7 +234,8 @@ class GyroAcceBiasFactor : public CeresSplineHelper<_N> {
 
     SO3T R_w_i;
     Tangent rot_vel;
-    CeresSplineHelper<_N>::template evaluate_lie<T, Sophus::SO3>(
+    //CeresSplineHelper<_N>::template evaluate_lie<T, Sophus::SO3>(
+    CeresSplineHelper<_N>::template evaluate_lie<T>(
         sKnots + R_offset, u, inv_dt_, &R_w_i, &rot_vel);
 
     Vec3T accel_w;
@@ -299,7 +302,8 @@ class IMUPoseFactor : public CeresSplineHelper<_N> {
     P_offset = R_offset + spline_meta_.NumParameters();
 
     SO3T R_IkToG;
-    CeresSplineHelper<_N>::template evaluate_lie<T, Sophus::SO3>(
+    //CeresSplineHelper<_N>::template evaluate_lie<T, Sophus::SO3>(
+    CeresSplineHelper<_N>::template evaluate_lie<T>(
         sKnots + R_offset, u, inv_dt_, &R_IkToG);
 
     Vec3T p_IkinG;
@@ -389,7 +393,8 @@ class IMUOrientationFactor : public CeresSplineHelper<_N> {
     spline_meta_.ComputeSplineIndex(pose_data_.timestamp, R_offset, u);
 
     SO3T R_IkToG;
-    CeresSplineHelper<_N>::template evaluate_lie<T, Sophus::SO3>(sKnots, u, 1,
+    //CeresSplineHelper<_N>::template evaluate_lie<T, Sophus::SO3>(sKnots, u, 1,
+    CeresSplineHelper<_N>::template evaluate_lie<T>(sKnots, u, 1,
                                                                  &R_IkToG);
 
     Eigen::Map<Tangent> residuals(sResiduals);
@@ -439,9 +444,11 @@ class IMUDeltaOrientationFactor : public CeresSplineHelper<_N> {
     spline_meta_.ComputeSplineIndex(t[1], R_offset[1], u[1]);
 
     SO3T R_IkToG[2];
-    CeresSplineHelperJet<T, _N>::template evaluate_lie<Sophus::SO3>(
+    //CeresSplineHelperJet<T, _N>::template evaluate_lie<Sophus::SO3>(
+    CeresSplineHelperJet<T, _N>::evaluate_lie(
         sKnots + R_offset[0], u[0], inv_dt_, &R_IkToG[0]);
-    CeresSplineHelperJet<T, _N>::template evaluate_lie<Sophus::SO3>(
+    //CeresSplineHelperJet<T, _N>::template evaluate_lie<Sophus::SO3>(
+    CeresSplineHelperJet<T, _N>::evaluate_lie(
         sKnots + R_offset[1], u[1], inv_dt_, &R_IkToG[1]);
 
     SO3T delta_rot_est = R_IkToG[0].inverse() * R_IkToG[1];

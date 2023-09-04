@@ -162,8 +162,12 @@ class RdSpline {
 //    double u = double(st_ns % dt_ns) / double(dt_ns);
 
     BASALT_ASSERT_STREAM(s >= 0, "s " << s);
+    BASALT_ASSERT_STREAM(u >= 0 && u < 1., " u " << u);
     BASALT_ASSERT_STREAM(size_t(s + N) <= knots.size(),
-            "s " << s << " N " << N << " knots.size() " << knots.size());
+            "s " << s << " N " << N << " knots.size() " << knots.size()
+                 << " u: " << u
+                 << " t: " << timestamp << " s: " << start_t_ << " dt: " << dt_
+                 << " max: " << maxTime() << " t<m: " << (timestamp<maxTime()) );
     return std::make_pair(u, s);
   }
 

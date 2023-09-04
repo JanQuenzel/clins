@@ -42,6 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <basalt/spline/spline_common.h>
 #include <Eigen/Dense>
 #include <ceres/jet.h>
+#include "sophus/so3.hpp"
 
 namespace basalt {
 
@@ -102,16 +103,25 @@ struct CeresSplineHelperJet {
   /// body frame
   /// @param[out] accel_out if not nullptr acceleration (second time derivative)
   /// in the body frame
-  template <template <class> class GroupT>
+//  template <template <class> class GroupT>
+//  static inline void evaluate_lie(
+//      T const* const* sKnots, const T u, const double inv_dt,
+//      GroupT<T>* transform_out = nullptr,
+//      typename GroupT<T>::Tangent* vel_out = nullptr,
+//      typename GroupT<T>::Tangent* accel_out = nullptr,
+//      typename GroupT<T>::Tangent* jerk_out = nullptr) {
+//    using Group = GroupT<T>;
+//    using Tangent = typename GroupT<T>::Tangent;
+//    using Adjoint = typename GroupT<T>::Adjoint;
   static inline void evaluate_lie(
       T const* const* sKnots, const T u, const double inv_dt,
-      GroupT<T>* transform_out = nullptr,
-      typename GroupT<T>::Tangent* vel_out = nullptr,
-      typename GroupT<T>::Tangent* accel_out = nullptr,
-      typename GroupT<T>::Tangent* jerk_out = nullptr) {
-    using Group = GroupT<T>;
-    using Tangent = typename GroupT<T>::Tangent;
-    using Adjoint = typename GroupT<T>::Adjoint;
+      Sophus::SO3<T>* transform_out = nullptr,
+      typename Sophus::SO3<T>::Tangent* vel_out = nullptr,
+      typename Sophus::SO3<T>::Tangent* accel_out = nullptr,
+      typename Sophus::SO3<T>::Tangent* jerk_out = nullptr) {
+    using Group = Sophus::SO3<T>;
+    using Tangent = typename Sophus::SO3<T>::Tangent;
+    using Adjoint = typename Sophus::SO3<T>::Adjoint;
 
     VecN p, coeff, dcoeff, ddcoeff, dddcoeff;
 

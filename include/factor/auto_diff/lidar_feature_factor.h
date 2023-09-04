@@ -20,14 +20,14 @@
 #ifndef AUTO_DIFF_LIDAR_FEATURE_FACTOR
 #define AUTO_DIFF_LIDAR_FEATURE_FACTOR
 
-#include <basalt/spline/ceres_spline_helper_jet.h>
+#include "basalt/spline/ceres_spline_helper_jet.h"
 #include <ceres/ceres.h>
 #include <ceres/rotation.h>
 #include <feature/lidar_feature.h>
 #include <sensor_data/imu_data.h>
 #include <Eigen/Core>
 #include <memory>
-#include <sophus/so3.hpp>
+#include "sophus/so3.hpp"
 
 namespace clins {
 
@@ -63,9 +63,11 @@ class PointFeatureFactor {
     P_offset[1] = R_offset[1] + spline_meta_.NumParameters();
 
     SO3T R_IkToG[2];
-    CeresSplineHelperJet<T, _N>::template evaluate_lie<Sophus::SO3>(
+    //CeresSplineHelperJet<T, _N>::template evaluate_lie<Sophus::SO3>(
+    CeresSplineHelperJet<T, _N>::evaluate_lie (
         sKnots + R_offset[0], u[0], inv_dt_, &R_IkToG[0]);
-    CeresSplineHelperJet<T, _N>::template evaluate_lie<Sophus::SO3>(
+    //CeresSplineHelperJet<T, _N>::template evaluate_lie<Sophus::SO3>(
+    CeresSplineHelperJet<T, _N>::evaluate_lie (
         sKnots + R_offset[1], u[1], inv_dt_, &R_IkToG[1]);
 
     Vec3T p_IkinG[2];
@@ -146,7 +148,8 @@ class LiDARPoseFactor {
     P_offset = R_offset + spline_meta_.NumParameters();
 
     SO3T R_IkToG;
-    CeresSplineHelperJet<T, _N>::template evaluate_lie<Sophus::SO3>(
+    //CeresSplineHelperJet<T, _N>::template evaluate_lie <Sophus::SO3>(
+    CeresSplineHelperJet<T, _N>::evaluate_lie (
         sKnots + R_offset, u, inv_dt_, &R_IkToG);
 
     Vec3T p_IkinG;
@@ -202,7 +205,8 @@ class LiDAROrientationFactor {
     spline_meta_.ComputeSplineIndex(t, R_offset, u);
 
     SO3T R_IkToG;
-    CeresSplineHelperJet<T, _N>::template evaluate_lie<Sophus::SO3>(
+    //CeresSplineHelperJet<T, _N>::template evaluate_lie<Sophus::SO3>(
+    CeresSplineHelperJet<T, _N>::evaluate_lie (
         sKnots + R_offset, u, inv_dt_, &R_IkToG);
 
     int Kont_offset = spline_meta_.NumParameters();
