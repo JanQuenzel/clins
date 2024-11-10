@@ -1,30 +1,39 @@
 ## Feature Extraction Parameter
-lidar_topic: /os1_cloud_node/points
-N_SCAN: 64
+lidar_topic: /os_cloud_node/points
+N_SCAN: 128
 Horizon_SCAN: 1024
 edge_threshold: 1.0
 surf_threshold: 0.1
 odometry_surface_leaf_size: 0.4
 undistort_scan_before_extraction: true
 min_distance: 1.0
-max_distance: 150.0
+max_distance: 55.0
 
 ## Bag Param
-#bag_path: /media/jquenzel/CopterExchange_2/nc/01_short/01_short_l.bag
-#bag_path: /media/jquenzel/CopterExchange_2/nc/02_long/02_long_l.bag
-bag_path: /media/jquenzel/CopterExchange_2/nc/05_quad_with_dynamics/05_quad_with_dynamics_l.bag
-#bag_path: /media/jquenzel/CopterExchange_2/nc/06_dynamic_spinning/06_dynamic_spinning_l.bag
-#bag_path: /media/jquenzel/CopterExchange_2/nc/07_parkland_mound/07_parkland_mound_l.bag
-imu_topic: /os1_cloud_node/imu
+#bag_path: /home/data/newer_college/2021-04-07-13-49-03-math-easy.bag
+#bag_path: /home/data/newer_college/2021-04-07-13-55-18-math-medium.bag
+#bag_path: /home/data/newer_college/2021-04-07-13-58-54-math-hard.bag
+#bag_path: /home/data/newer_college/2021-04-12-11-06-47-underground-mine-easy.bag
+#bag_path: /home/data/newer_college/2021-04-12-11-11-33-underground-mine-medium.bag
+#bag_path: /home/data/newer_college/2021-04-12-11-24-30-underground-mine-hard.bag
+#bag_path: /home/data/newer_college/2021-07-01-10-37-38-quad-easy.bag
+#bag_path: /home/data/newer_college/2021-07-01-10-40-50_0-stairs.bag
+#bag_path: /home/data/newer_college/2021-07-01-11-31-35-quad-medium.bag
+#bag_path: /home/data/newer_college/2021-07-01-11-35-14-quad-hard.bag
+#bag_path: /home/data/newer_college/2021-11-30-17-09-49-park.bag
+bag_path: /home/data/newer_college/2021-12-02-10-15-59-cloister.bag
+
+imu_topic: /alphasense_driver_ros/imu
 gps_topic: /gps/fix
 bag_start: 0
 bag_durr: -1
 
 ## Methods of data fusion
-use_corner_feature: true
+use_corner_feature: false #true
 use_imu_orientation: false
 
 ## Spline Param
+#knot_distance: 0.1
 knot_distance: 0.05
 
 # lidar odometry
@@ -53,10 +62,10 @@ lidar_weight: 20.0
 
 time_offset: 0
 extrinsic:
- Trans: [-0.006253, 0.011775, 0.028535]
- Rot: [-1.0, 0.0, 0.0,
+ Trans: [-0.037, -0.008, -0.026]
+ Rot: [1.0, 0.0, 0.0,
        0.0,-1.0, 0.0,
-       0.0, 0.0, 1.0]
+       0.0, 0.0,-1.0]
 
 # Loop Closure
 loop_closure_enable_flag: false
@@ -78,3 +87,4 @@ loop_closure_weights:
     gyro_weight: 2.0
 
 save_map: true
+

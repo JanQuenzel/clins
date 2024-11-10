@@ -46,6 +46,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <basalt/spline/calib_bias.hpp>
 
 #include <array>
+#include <fstream>
 
 namespace basalt {
 
@@ -184,13 +185,27 @@ class Se3Spline {
     }
   }
 
+
   /// @brief extend trajectory to time t
   ///
   /// @param[in] t timestamp
   /// @param[in] initial_knot initial knot
   void extendKnotsTo(double timestamp, const SE3 &initial_knot) {
+    bool added_knot = false;
     while ((numKnots() < N) || (maxTime() < (timestamp+1e-9))) {
       knots_push_back(initial_knot);
+      added_knot = true;
+    }
+    if ( added_knot )
+    {
+        static int64_t sum_dt = 0;
+        static int num_dt = 0;
+        static std::ofstream out_f ("./timestamp_diff.txt");
+        sum_dt += int64_t(1e9*(maxTime() - timestamp));
+        ++num_dt;
+        if ( out_f.is_open() )
+            out_f << int64_t(1e9*(maxTime() - timestamp)) << std::endl;
+        std::cout << "dt: " << (maxTime() - timestamp) << " ( " << ((maxTime() - timestamp) / dt_) << " ) min: " << (maxTime()-minTime()) << " " << (timestamp - minTime()) << " avg: " << (sum_dt / num_dt) << " ( " << ((sum_dt / num_dt) / (1e9*dt_))<< " ) n: " << num_dt << std::endl;
     }
   }
 

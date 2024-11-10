@@ -103,6 +103,12 @@ bool OdomInitializer::IMUInitializer() {
   accel_bias_ = accel_avg - rot_GtoI.toRotationMatrix() * gravity_;
   gyro_bias_ = gyro_avg;
 
+  Eigen::Quaterniond q = Eigen::Quaterniond::FromTwoVectors(accel_avg.normalized(),Eigen::Vector3d::UnitZ());
+  Eigen::Quaterniond q2 = Eigen::Quaterniond::FromTwoVectors(z_axis,Eigen::Vector3d::UnitZ());
+  std::cout << "init: rot: " << rot_GtoI.coeffs().transpose() << " v: " << q.coeffs().transpose() << " q2: " << q2.coeffs().transpose() << std::endl;
+  std::cout << "init: R:\n" << rot_GtoI.toRotationMatrix() << "\nQ:\n" << q.toRotationMatrix() << "\nQ2:\n"<< q2.toRotationMatrix() << std::endl;
+  std::cout << "init: accel: " << accel_avg.transpose() << " v: " << accel_var << " w: " << window_length_ << " ie: " << imu_excite_threshold_ << std::endl;
+  std::cout << "init: ab: " << accel_bias_.transpose() << " gb: " <<  gyro_bias_.transpose() << " R: " << rot_GtoI.coeffs().transpose() << " g: " << (rot_GtoI*gravity_).transpose() << " N: " << imu_cache.size() << std::endl;
   return true;
 }
 

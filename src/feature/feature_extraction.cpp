@@ -20,6 +20,10 @@
 #include <feature/feature_extraction.h>
 #include <rosbag/bag.h>
 
+//#ifdef NDEBUG
+//#define assert(ignore, ignore) ((void)0)
+//#endif
+
 using namespace std;
 
 namespace clins {
